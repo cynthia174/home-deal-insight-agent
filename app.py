@@ -54,6 +54,13 @@ st.markdown(
     .step-repaired { background:#FEF3C7; color:#92400E; }
     .step-warning { background:#FFF7ED; color:#9A3412; }
     .step-error { background:#FEE2E2; color:#991B1B; }
+    .table-open-button {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; margin-top: 8px; border-radius: 10px;
+        background: #0F766E; color: #FFFFFF !important;
+        text-decoration: none !important; font-weight: 700;
+    }
+    .table-open-button:hover { background: #0B5F58; }
     [data-testid="stSidebar"] { border-right: 1px solid #DDE5E1; }
     div[data-testid="stMetric"] {
         background: white; border: 1px solid #E1E8E4; padding: 12px 15px;
@@ -100,8 +107,6 @@ with st.sidebar:
         value=False,
         help="让第一次执行遇到一个模拟字段错误，展示 Agent 如何捕获、修复并继续。",
     )
-    show_data = st.toggle("查看原始明细", value=False)
-
     st.divider()
     st.markdown("### 支持的问题")
     st.caption("总额 / 平均值 / 数量 / 排名 / 趋势 / 毛利率 / 按时出图率 / 多维筛选")
@@ -145,6 +150,10 @@ except Exception as exc:
     st.stop()
 
 valid_df = df[df["有效签约"]]
+st.session_state["active_business_data"] = df
+st.session_state["active_source_label"] = source_label
+st.session_state["active_data_repairs"] = repairs
+
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("当前数据", f"{len(df):,} 条")
 k2.metric("有效签约", f"{len(valid_df):,} 单")
@@ -160,9 +169,37 @@ if repairs:
         for repair in repairs:
             st.write(f"✓ {repair}")
 
-if show_data:
-    with st.expander("原始业务明细", expanded=True):
-        st.dataframe(df.drop(columns=["有效签约"], errors="ignore").head(200), use_container_width=True, height=360)
+raw_columns = [
+    "项目编号", "签约日期", "城市", "门店", "客户经理", "设计师", "房屋类型", "面积㎡",
+    "设计风格", "获客渠道", "签约额", "设计费", "预计成本", "毛利额", "合同状态",
+    "交付状态", "出图日期", "出图时长(天)", "客户评分", "是否按时出图",
+]
+visible_raw_columns = [column for column in raw_columns if column in df.columns]
+with st.expander(f"原始业务数据表｜{len(df):,} 条明细｜点击展开预览"):
+    preview_left, preview_middle, preview_right = st.columns(3)
+    preview_left.metric("数据行", f"{len(df):,}")
+    preview_middle.metric("业务字段", f"{len(visible_raw_columns)}")
+    preview_right.metric("有效合同", f"{int(df['有效签约'].sum()):,}")
+    st.caption("这里展示前 50 条缩略预览；表格支持横向滚动、列排序和列宽调整。")
+    st.dataframe(
+        df[visible_raw_columns].head(50),
+        use_container_width=True,
+        hide_index=True,
+        height=340,
+        column_config={
+            "签约日期": st.column_config.DateColumn("签约日期", format="YYYY-MM-DD"),
+            "出图日期": st.column_config.DateColumn("出图日期", format="YYYY-MM-DD"),
+            "签约额": st.column_config.NumberColumn("签约额（元）", format="¥ %d"),
+            "设计费": st.column_config.NumberColumn("设计费（元）", format="¥ %d"),
+            "预计成本": st.column_config.NumberColumn("预计成本（元）", format="¥ %d"),
+            "毛利额": st.column_config.NumberColumn("毛利额（元）", format="¥ %d"),
+        },
+    )
+    st.markdown(
+        '<a class="table-open-button" href="/数据明细" target="_blank">'
+        "↗ 在新窗口打开完整数据表工作台</a>",
+        unsafe_allow_html=True,
+    )
 
 st.markdown("### 想知道什么？")
 examples = [

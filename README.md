@@ -161,6 +161,7 @@ home-deal-insight-agent/
 ## 文档
 
 - [小白使用手册](docs/USER_GUIDE.md)
+- [运行环境说明](docs/ENVIRONMENT.md)
 - [技术设计文档](docs/TECHNICAL_DESIGN.md)
 - [准确率评测说明](docs/EVALUATION.md)
 - [演示数据工作簿](outputs/home-deal-insight-agent/家装业务演示数据.xlsx)

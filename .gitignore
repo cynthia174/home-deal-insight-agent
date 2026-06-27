@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.streamlit/secrets.toml
+.env
+.DS_Store
+node_modules/
+outputs/home-deal-insight-agent/previews/
+evaluation/latest_report.json
+*.log
+*.inspect.ndjson
